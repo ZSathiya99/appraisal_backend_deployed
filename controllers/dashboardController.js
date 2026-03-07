@@ -562,8 +562,8 @@ exports.getEmployeeForms = async (req, res) => {
         approvalFilter = { approvalStatus: "Pending with Research Dean" };
         approvalKeyword = "Pending with Research Dean";
       } else if (email.includes("iqac")) {
-        approvalFilter = { approvalStatus: "Pending with IQAC Dean" };
-        approvalKeyword = "Pending with IQAC Dean";
+        approvalFilter = { approvalStatus: "Pending with iqac Dean" };
+        approvalKeyword = "Pending with iqac Dean"
       } else {
         return res.status(400).json({
           message:
