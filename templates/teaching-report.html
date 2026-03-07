@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Teaching Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1, h2 { text-align: center; color:green }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    .total { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Teaching Report</h1>
+  <p><strong>Faculty:</strong> {{facultyName}}</p>
+  <p><strong>Designation:</strong> {{designation}}</p>
+  <p><strong>Date:</strong> {{date}}</p>
+
+  <table>
+    <thead>
+      <tr><th>Section</th><th>Marks</th></tr>
+    </thead>
+    <tbody>
+      {{rows}}
+    </tbody>
+    <tfoot>
+      <tr class="total"><td>Total Marks</td><td>{{totalMarks}}</td></tr>
+    </tfoot>
+  </table>
+</body>
+</html>
