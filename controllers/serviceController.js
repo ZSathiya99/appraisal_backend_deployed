@@ -1,20 +1,27 @@
-const teaching = require('../models/TeachingRecord');
+const teaching = require("../models/TeachingRecord");
 const pointsDistribution = require("../utils/prePoints");
 const cleanBody = require("../utils/cleanBody");
 const handleFiles = require("../utils/fileHandler");
 
-
 // Q1: Accreditation Activities
 exports.calculateActivitiesMarks = async (req, res) => {
   try {
-    const { facultyName, roles, employeeId, designation: bodyDesignation, activitiesFiles: bodyFiles } = req.body;
+    const {
+      facultyName,
+      roles,
+      employeeId,
+      designation: bodyDesignation,
+      activitiesFiles: bodyFiles,
+    } = req.body;
     const { designation: paramDesignation } = req.params;
 
     let designation;
     if (paramDesignation === "HOD" || paramDesignation === "Dean") {
       designation = bodyDesignation;
       if (!employeeId) {
-        return res.status(400).json({ message: "employeeId is required for HOD/Dean" });
+        return res
+          .status(400)
+          .json({ message: "employeeId is required for HOD/Dean" });
       }
     } else {
       designation = paramDesignation;
@@ -24,9 +31,10 @@ exports.calculateActivitiesMarks = async (req, res) => {
       return res.status(400).json({ message: "Designation missing" });
     }
 
-    let employee = (paramDesignation === "HOD" || paramDesignation === "Dean")
-      ? employeeId
-      : req.userId;
+    let employee =
+      paramDesignation === "HOD" || paramDesignation === "Dean"
+        ? employeeId
+        : req.userId;
 
     let rolesArray = [];
     if (Array.isArray(roles)) rolesArray = roles;
@@ -34,11 +42,11 @@ exports.calculateActivitiesMarks = async (req, res) => {
       try {
         rolesArray = JSON.parse(roles);
       } catch {
-        rolesArray = roles.includes(",") ? roles.split(",").map(r => r.trim()) : [roles];
+        rolesArray = roles.includes(",")
+          ? roles.split(",").map((r) => r.trim())
+          : [roles];
       }
     }
-
-
 
     const pointsMap = {
       InstitutionalCoordinator: 5,
@@ -54,15 +62,20 @@ exports.calculateActivitiesMarks = async (req, res) => {
     });
 
     // rolesArray = rolesArray.filter(r => r && r.toLowerCase() !== "none");
-    
+
     const maxPass = pointsDistribution[designation]?.service?.activities ?? 0;
     const finalMarks = Math.min(totalMarks, maxPass);
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
-          message: "Faculty record not found. HOD/Dean can only edit existing records."
+          message:
+            "Faculty record not found. HOD/Dean can only edit existing records.",
         });
       }
       record = new teaching({ facultyName, designation, employee });
@@ -74,12 +87,12 @@ exports.calculateActivitiesMarks = async (req, res) => {
       "activitiesFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     record.activities = {
-       value: {
-        roles: rolesArray         
+      value: {
+        roles: rolesArray,
       },
       marks: finalMarks,
       activitiesFiles: currentFiles,
@@ -93,27 +106,34 @@ exports.calculateActivitiesMarks = async (req, res) => {
       finalMarks,
       files: currentFiles,
       employee,
-      designation
+      designation,
     });
-
   } catch (error) {
     console.error("Error calculating accreditation activities marks:", error);
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
-
-
 
 // Q2: Branding
 exports.calculateBrandingMarks = async (req, res) => {
   try {
-    const { facultyName, branding, employeeId, designation: bodyDesignation, brandingFiles: bodyFiles } = req.body;
+    const {
+      facultyName,
+      branding,
+      employeeId,
+      designation: bodyDesignation,
+      brandingFiles: bodyFiles,
+    } = req.body;
     const { designation: paramDesignation } = req.params;
     let designation;
     if (paramDesignation === "HOD" || paramDesignation === "Dean") {
       designation = bodyDesignation;
       if (!employeeId) {
-        return res.status(400).json({ message: "employeeId is required for HOD/Dean" });
+        return res
+          .status(400)
+          .json({ message: "employeeId is required for HOD/Dean" });
       }
     } else {
       designation = paramDesignation;
@@ -123,15 +143,21 @@ exports.calculateBrandingMarks = async (req, res) => {
       return res.status(400).json({ message: "Designation missing" });
     }
 
-    let employee = (paramDesignation === "HOD" || paramDesignation === "Dean")
-      ? employeeId
-      : req.userId;
+    let employee =
+      paramDesignation === "HOD" || paramDesignation === "Dean"
+        ? employeeId
+        : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
-          message: "Faculty record not found. HOD/Dean can only edit existing records."
+          message:
+            "Faculty record not found. HOD/Dean can only edit existing records.",
         });
       }
       record = new teaching({ facultyName, designation, employee });
@@ -142,7 +168,7 @@ exports.calculateBrandingMarks = async (req, res) => {
       "brandingFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
     let normalizedValue = record.branding?.value || null;
     if (typeof branding === "string") {
@@ -168,9 +194,8 @@ exports.calculateBrandingMarks = async (req, res) => {
       finalMarks,
       files: currentFiles,
       employee,
-      designation
+      designation,
     });
-
   } catch (err) {
     console.error("Error calculating branding marks:", err);
     return res.status(500).json({ error: err.message });
@@ -210,7 +235,11 @@ exports.calculateMembershipMarks = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -228,7 +257,7 @@ exports.calculateMembershipMarks = async (req, res) => {
       "membershipFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     // 🔹 Normalize membership value
@@ -264,8 +293,6 @@ exports.calculateMembershipMarks = async (req, res) => {
   }
 };
 
-
-
 // Q4: Co-curricular
 exports.calculateCocurricularMarks = async (req, res) => {
   try {
@@ -282,7 +309,9 @@ exports.calculateCocurricularMarks = async (req, res) => {
     if (paramDesignation === "HOD" || paramDesignation === "Dean") {
       designation = bodyDesignation;
       if (!employeeId) {
-        return res.status(400).json({ message: "employeeId is required for HOD/Dean" });
+        return res
+          .status(400)
+          .json({ message: "employeeId is required for HOD/Dean" });
       }
     } else {
       designation = paramDesignation;
@@ -292,15 +321,21 @@ exports.calculateCocurricularMarks = async (req, res) => {
       return res.status(400).json({ message: "Designation missing" });
     }
 
-    let employee = paramDesignation === "HOD" || paramDesignation === "Dean"
-      ? employeeId
-      : req.userId;
+    let employee =
+      paramDesignation === "HOD" || paramDesignation === "Dean"
+        ? employeeId
+        : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
-          message: "Faculty record not found. HOD/Dean can only edit existing records.",
+          message:
+            "Faculty record not found. HOD/Dean can only edit existing records.",
         });
       }
       record = new teaching({ facultyName, designation, employee });
@@ -354,20 +389,25 @@ exports.calculateCocurricularMarks = async (req, res) => {
   }
 };
 
-
-
-
 //Q5: Assistance
 exports.calculateAssistanceMarks = async (req, res) => {
   try {
-    const { facultyName, assistance, employeeId, designation: bodyDesignation, administrationFiles: bodyFiles } = cleanBody(req.body);
+    const {
+      facultyName,
+      assistance,
+      employeeId,
+      designation: bodyDesignation,
+      administrationFiles: bodyFiles,
+    } = cleanBody(req.body);
     const { designation: paramDesignation } = req.params;
 
     let designation;
     if (paramDesignation === "HOD" || paramDesignation === "Dean") {
       designation = bodyDesignation;
       if (!employeeId) {
-        return res.status(400).json({ message: "employeeId is required for HOD/Dean" });
+        return res
+          .status(400)
+          .json({ message: "employeeId is required for HOD/Dean" });
       }
     } else {
       designation = paramDesignation;
@@ -377,22 +417,30 @@ exports.calculateAssistanceMarks = async (req, res) => {
       return res.status(400).json({ message: "Designation missing" });
     }
 
-    let employee = (paramDesignation === "HOD" || paramDesignation === "Dean")
-      ? employeeId
-      : req.userId;
+    let employee =
+      paramDesignation === "HOD" || paramDesignation === "Dean"
+        ? employeeId
+        : req.userId;
 
-
-    const isYes = typeof assistance === "string" && assistance.trim().toLowerCase() === "yes";
+    const isYes =
+      typeof assistance === "string" &&
+      assistance.trim().toLowerCase() === "yes";
     const marks = isYes ? 5 : 0;
 
-    const maxmark = pointsDistribution[designation]?.service?.Administration ?? 0;
+    const maxmark =
+      pointsDistribution[designation]?.service?.Administration ?? 0;
     const finalMarks = Math.min(marks, maxmark);
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
-          message: "Faculty record not found. HOD/Dean can only edit existing records."
+          message:
+            "Faculty record not found. HOD/Dean can only edit existing records.",
         });
       }
       record = new teaching({ facultyName, designation, employee });
@@ -404,14 +452,13 @@ exports.calculateAssistanceMarks = async (req, res) => {
       "administrationFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
-
 
     record.administration = {
       value: assistance ?? "Not Provided",
       marks: finalMarks,
-      administrationFiles: currentFiles
+      administrationFiles: currentFiles,
     };
 
     await record.save();
@@ -421,29 +468,33 @@ exports.calculateAssistanceMarks = async (req, res) => {
       finalMarks,
       files: currentFiles,
       employee,
-      designation
+      designation,
     });
-
   } catch (err) {
     console.error("Error calculating assistance marks:", err);
     return res.status(500).json({ error: err.message });
   }
 };
 
-
-
-
 //Q6: Training
 exports.calculateTrainingMarks = async (req, res) => {
   try {
-    const { facultyName, training, employeeId, designation: bodyDesignation, trainingFiles: bodyFiles } = cleanBody(req.body);
+    const {
+      facultyName,
+      training,
+      employeeId,
+      designation: bodyDesignation,
+      trainingFiles: bodyFiles,
+    } = cleanBody(req.body);
     const { designation: paramDesignation } = req.params;
 
     let designation;
     if (paramDesignation === "HOD" || paramDesignation === "Dean") {
       designation = bodyDesignation;
       if (!employeeId) {
-        return res.status(400).json({ message: "employeeId is required for HOD/Dean" });
+        return res
+          .status(400)
+          .json({ message: "employeeId is required for HOD/Dean" });
       }
     } else {
       designation = paramDesignation;
@@ -453,9 +504,10 @@ exports.calculateTrainingMarks = async (req, res) => {
       return res.status(400).json({ message: "Designation missing" });
     }
 
-    let employee = (paramDesignation === "HOD" || paramDesignation === "Dean")
-      ? employeeId
-      : req.userId;
+    let employee =
+      paramDesignation === "HOD" || paramDesignation === "Dean"
+        ? employeeId
+        : req.userId;
 
     let marks = 0;
     if (training === "3 days & above") marks = 5;
@@ -465,11 +517,16 @@ exports.calculateTrainingMarks = async (req, res) => {
     const maxmark = pointsDistribution[designation]?.service?.Training ?? 0;
     const finalMarks = Math.min(marks, maxmark);
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
-          message: "Faculty record not found. HOD/Dean can only edit existing records."
+          message:
+            "Faculty record not found. HOD/Dean can only edit existing records.",
         });
       }
       record = new teaching({ facultyName, designation, employee });
@@ -477,17 +534,17 @@ exports.calculateTrainingMarks = async (req, res) => {
 
     let currentFiles = handleFiles(
       record,
-      "training",          
-      "trainingFiles",     
+      "training",
+      "trainingFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     record.training = {
       value: training,
       marks: finalMarks,
-      trainingFiles: currentFiles
+      trainingFiles: currentFiles,
     };
 
     await record.save();
@@ -497,9 +554,8 @@ exports.calculateTrainingMarks = async (req, res) => {
       finalMarks,
       files: currentFiles,
       employee,
-      designation
+      designation,
     });
-
   } catch (err) {
     console.error("Error calculating training marks:", err);
     return res.status(500).json({ error: err.message });

@@ -35,7 +35,11 @@ exports.calculateSciePaper = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -52,7 +56,7 @@ exports.calculateSciePaper = async (req, res) => {
       "sciePaperFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     let papers = scie;
@@ -64,7 +68,7 @@ exports.calculateSciePaper = async (req, res) => {
       }
     }
 
-    if (!Array.isArray(papers)){
+    if (!Array.isArray(papers)) {
       return res.status(400).json({ error: "SCIE must be an array" });
     }
     let parsedValue;
@@ -95,7 +99,7 @@ exports.calculateSciePaper = async (req, res) => {
     }
 
     let totalMarks = 0;
-    if(valueObj.status === 'yes'){
+    if (valueObj.status === "yes") {
       papers.forEach((paper) => {
         if (paper.typeOfAuthor === "Firstauthor") totalMarks += 4;
         else if (paper.typeOfAuthor === "secondauthor") totalMarks += 2;
@@ -106,9 +110,6 @@ exports.calculateSciePaper = async (req, res) => {
     const maxmark = pointsDistribution[designation]?.research?.scie ?? 0;
     const finalMarks = Math.min(totalMarks, maxmark);
 
-    
-
-    
     record.sciePaper = {
       value: valueObj,
       marks: finalMarks,
@@ -130,7 +131,7 @@ exports.calculateSciePaper = async (req, res) => {
 
 // Q2: Scopus
 exports.calculateScopusPaper = async (req, res) => {
-  console.log("scopus paper : ", req.body)
+  console.log("scopus paper : ", req.body);
   try {
     const {
       facultyName,
@@ -171,10 +172,8 @@ exports.calculateScopusPaper = async (req, res) => {
       }
     }
 
-    if (!Array.isArray(papers) ) {
-      return res
-        .status(400)
-        .json({ error: "scopus must be a  array" });
+    if (!Array.isArray(papers)) {
+      return res.status(400).json({ error: "scopus must be a  array" });
     }
 
     let valueObj = null;
@@ -195,9 +194,8 @@ exports.calculateScopusPaper = async (req, res) => {
       };
     }
 
-
     let totalMarks = 0;
-    if(valueObj.status === 'yes'){
+    if (valueObj.status === "yes") {
       papers.forEach((paper) => {
         if (paper.typeOfAuthor === "Firstauthor") totalMarks += 3;
         else if (paper.typeOfAuthor === "secondauthor") totalMarks += 1.5;
@@ -208,7 +206,11 @@ exports.calculateScopusPaper = async (req, res) => {
     const maxmark = pointsDistribution[designation]?.research?.scopus ?? 0;
     const finalMarks = Math.min(totalMarks, maxmark);
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -224,10 +226,9 @@ exports.calculateScopusPaper = async (req, res) => {
       "scopusPaperFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
-    
     record.scopusPaper = {
       value: valueObj,
       marks: finalMarks,
@@ -281,7 +282,11 @@ exports.calculateAictePaper = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -301,12 +306,12 @@ exports.calculateAictePaper = async (req, res) => {
       }
     }
 
-    if (!Array.isArray(papers) ) {
+    if (!Array.isArray(papers)) {
       return res.status(400).json({ error: "aicte must be a non-empty array" });
     }
 
     let valueObj = null;
-    if (Array.isArray(papers) ) {
+    if (Array.isArray(papers)) {
       valueObj = {
         status: "yes",
         data: papers,
@@ -317,14 +322,14 @@ exports.calculateAictePaper = async (req, res) => {
         data: [],
       };
     } else {
-      valueObj = {  
+      valueObj = {
         status: null,
         data: null,
       };
     }
 
     let totalMarks = 0;
-    if(valueObj.status === 'yes'){
+    if (valueObj.status === "yes") {
       papers.forEach((paper) => {
         if (paper.typeOfAuthor === "Firstauthor") totalMarks += 1;
         else if (paper.typeOfAuthor === "secondauthor") totalMarks += 0.5;
@@ -341,10 +346,8 @@ exports.calculateAictePaper = async (req, res) => {
       "aictePaperFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
-
-    
 
     record.aictePaper = {
       value: valueObj,
@@ -400,7 +403,11 @@ exports.calculateScopusBook = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -422,7 +429,7 @@ exports.calculateScopusBook = async (req, res) => {
       "scopusBookFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     const bookCount = Number(numBook) || 0;
@@ -485,7 +492,11 @@ exports.calculateIndexedBook = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -509,7 +520,7 @@ exports.calculateIndexedBook = async (req, res) => {
       "indexBookFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     record.indexBook = {
@@ -566,7 +577,11 @@ exports.calculatePatentMarks = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -594,7 +609,7 @@ exports.calculatePatentMarks = async (req, res) => {
       "patentFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     record.patent = {
@@ -651,7 +666,11 @@ exports.calculatehIndex = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -668,7 +687,7 @@ exports.calculatehIndex = async (req, res) => {
       "hIndexFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     let marks = 0;
@@ -739,7 +758,14 @@ exports.calculateIIndex = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
+
+    // issue fixing branch
+
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -756,7 +782,7 @@ exports.calculateIIndex = async (req, res) => {
       "iIndexFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     let marks = 0;
@@ -819,7 +845,11 @@ exports.calculateCitation = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -836,7 +866,7 @@ exports.calculateCitation = async (req, res) => {
       "citationFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     let marks = 0;
@@ -900,7 +930,11 @@ exports.calculateConsultancy = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -917,7 +951,7 @@ exports.calculateConsultancy = async (req, res) => {
       "consultancyFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     let marks = 0;
@@ -981,7 +1015,11 @@ exports.calculateForeignMarks = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -998,7 +1036,7 @@ exports.calculateForeignMarks = async (req, res) => {
       "collabrativeFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     const isYes = foreignWork?.toLowerCase() === "yes";
@@ -1060,7 +1098,11 @@ exports.calculateSeedFund = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -1077,7 +1119,7 @@ exports.calculateSeedFund = async (req, res) => {
       "seedFundFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     let marks = 0;
@@ -1143,7 +1185,11 @@ exports.calculateFundedProjectMarks = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -1160,7 +1206,7 @@ exports.calculateFundedProjectMarks = async (req, res) => {
       "fundedProjectFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     // 🟢 directly use PI / CoPI values from body
@@ -1173,8 +1219,7 @@ exports.calculateFundedProjectMarks = async (req, res) => {
     if (None) {
       selectedRoles.push("None");
       totalMarks = 0;
-    }
-    else {
+    } else {
       const piCount = Number(PI) || 0;
       const copiCount = Number(CoPI) || 0;
     }
@@ -1222,7 +1267,6 @@ exports.calculateFundedProjectMarks = async (req, res) => {
   }
 };
 
-
 // Q14: Research Scholars
 exports.calculateResearchScholarMarks = async (req, res) => {
   try {
@@ -1258,7 +1302,11 @@ exports.calculateResearchScholarMarks = async (req, res) => {
         ? employeeId
         : req.userId;
 
-    let record = await teaching.findOne({ facultyName, employee });
+    let record = await teaching.findOneAndUpdate(
+      { employee },
+      { $setOnInsert: { facultyName, designation, employee } },
+      { new: true, upsert: true },
+    );
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
@@ -1275,7 +1323,7 @@ exports.calculateResearchScholarMarks = async (req, res) => {
       "researchScholarsFiles",
       paramDesignation,
       null,
-      req.files
+      req.files,
     );
 
     let marks = 0;
@@ -1310,11 +1358,9 @@ exports.calculateResearchScholarMarks = async (req, res) => {
     });
   } catch (error) {
     console.error("Error calculating Research Scholar marks:", error);
-    return res
-      .status(500)
-      .json({
-        message: "Error calculating Research Scholar marks",
-        error: error.message,
-      });
+    return res.status(500).json({
+      message: "Error calculating Research Scholar marks",
+      error: error.message,
+    });
   }
 };
