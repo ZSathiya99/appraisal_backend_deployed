@@ -763,6 +763,9 @@ exports.calculateIIndex = async (req, res) => {
       { $setOnInsert: { facultyName, designation, employee } },
       { new: true, upsert: true },
     );
+
+    // issue fixing branch
+
     if (!record) {
       if (paramDesignation === "HOD" || paramDesignation === "Dean") {
         return res.status(404).json({
